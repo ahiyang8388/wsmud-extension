@@ -1,1 +1,1 @@
-# wsmud-extension
+wsmud extension for chrome
