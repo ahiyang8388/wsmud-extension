@@ -46,7 +46,25 @@
 	$(document).keydown(
 			function(e) {
 				if (e.which == 112) { // F1
-					SendCommand('perform force.xi;perform sword.wu;perform sword.poqi');
+					SendCommand('eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu');
+					e.preventDefault();
+				} else if (e.which == 113) { // F2
+					SendCommand('eq 9wow13462cb;perform force.xi;perform sword.poqi');
+					e.preventDefault();
+				} else if (e.which == 114) { // F3
+					SendCommand('perform force.xi;perform dodge.power;eq twkw1558183;perform whip.chan;eq 9wow13462cb');
+					e.preventDefault();
+				} else if (e.which == 118) { // F7
+					SendCommand('eq 86q7155246a;eq 8j7n151819c;eq 40z51332c8f;eq sg9w14d7dca');
+					e.preventDefault();
+				} else if (e.which == 119) { // F8
+					SendCommand('eq 603z155852b;eq 38hd14d7d37;eq q0ui10f5a1d;eq lhc313bbbf4');
+					e.preventDefault();
+				} else if (e.which == 120) { // F9
+					SendCommand('jh fam 0 start;go west;go west;go north;go enter;go west;lianxi yunlongbian');
+					e.preventDefault();
+				} else if (e.which == 121) { // F10
+					SendCommand('jh fam 0 start;go west;go west;go west;go west;eq dkdi128460d;wa');
 					e.preventDefault();
 				} else if (e.which == 97) {
 					SendCommand('go southwest');
