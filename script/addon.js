@@ -58,10 +58,10 @@
 					SendCommand('eq 9wow13462cb;perform force.xi;perform sword.poqi');
 					e.preventDefault();
 				} else if (e.which == 118) { // F7
-					SendCommand('eq 86q7155246a;eq 8j7n151819c;eq 9f1k1560253;eq sg9w14d7dca');
+					SendCommand('eq 86q7155246a;eq 8j7n151819c;eq powh1516cbd;eq 9f1k1560253;eq sg9w14d7dca');
 					e.preventDefault();
 				} else if (e.which == 119) { // F8
-					SendCommand('eq 603z155852b;eq 38hd14d7d37;eq q0ui10f5a1d;eq lhc313bbbf4');
+					SendCommand('eq 603z155852b;eq cd9r156c5c0;eq 38hd14d7d37;eq q0ui10f5a1d;eq lhc313bbbf4');
 					e.preventDefault();
 				} else if (e.which == 120) { // F9
 					SendCommand('jh fam 0 start;go west;go west;go north;go enter;go west;lianxi yunlongbian');
