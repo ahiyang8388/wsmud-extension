@@ -52,16 +52,16 @@
 					SendCommand('eq zsko12f23aa;perform force.xi;perform dodge.power;perform blade.chan;eq 9wow13462cb');
 					e.preventDefault();
 				} else if (e.which == 114) { // F3
-					SendCommand('perform force.xi;perform dodge.power;eq twkw1558183;perform whip.chan;eq 9wow13462cb');
+					SendCommand('perform force.xi;perform dodge.power;eq vfi2158ba5c;perform whip.chan;eq 9wow13462cb');
 					e.preventDefault();
 				} else if (e.which == 115) { // F4
 					SendCommand('eq 9wow13462cb;perform force.xi;perform sword.poqi');
 					e.preventDefault();
 				} else if (e.which == 118) { // F7
-					SendCommand('eq 86q7155246a;eq 8j7n151819c;eq powh1516cbd;eq 9f1k1560253;eq sg9w14d7dca');
+					SendCommand('eq 86q7155246a;eq o90j1582bc7;eq powh1516cbd;eq 9f1k1560253;eq sg9w14d7dca;eq x6e51518454');
 					e.preventDefault();
 				} else if (e.which == 119) { // F8
-					SendCommand('eq 603z155852b;eq cd9r156c5c0;eq 38hd14d7d37;eq q0ui10f5a1d;eq lhc313bbbf4');
+					SendCommand('eq 603z155852b;eq cd9r156c5c0;eq 38hd14d7d37;eq q0ui10f5a1d;eq lhc313bbbf4;eq buhp157ff22');
 					e.preventDefault();
 				} else if (e.which == 120) { // F9
 					SendCommand('jh fam 0 start;go west;go west;go north;go enter;go west;lianxi yunlongbian');
