@@ -6,6 +6,9 @@
 	var aliases = new Map();
 	aliases.set('l', 'look');
 	aliases.set('i', 'items');
+	aliases.set('cha', 'skills');
+	aliases.set('msg', 'message');
+	aliases.set('rank', 'stats');
 	aliases.set('k', 'kill');
 	aliases.set('e', 'east');
 	aliases.set('s', 'south');
@@ -59,28 +62,53 @@
 			}
 		}
 	}
-	var _receive_data = window.ReceiveData;
-	window.ReceiveData = function(data) {
+	var _receive_data = GameClient.OnData;
+	GameClient.OnData = function(data) {
 		_receive_data.apply(this, arguments);
 		for ( var i = 0; i < message_listeners.length; i++) {
 			var listener = message_listeners[i];
-			if (listener.type == data.type || (listener.type instanceof Array && $
-							.inArray(data.type, listener.type) >= 0)) {
+			if (listener.types == data.type || (listener.types instanceof Array && $
+							.inArray(data.type, listener.types) >= 0)) {
 				listener.fn(data);
 			}
 		}
 	};
-	var _receive_message = window.ReceiveMessage;
-	window.ReceiveMessage = function(msg) {
+	var _receive_message = GameClient.OnMessage;
+	GameClient.OnMessage = function(msg) {
 		_receive_message.apply(this, arguments);
 		for ( var i = 0; i < message_listeners.length; i++) {
 			var listener = message_listeners[i];
-			if (listener.type == 'msg' || (listener.type instanceof Array && $
-							.inArray('msg', listener.type) >= 0)) {
+			if (listener.types == 'msg' || (listener.types instanceof Array && $
+							.inArray('msg', listener.types) >= 0)) {
 				listener.fn({'type' : 'msg', 'msg' : msg});
 			}
 		}
 	};
+	
+	var items = new Map();
+	add_listener(['items', 'itemadd', 'itemremove'], function(data) {
+		if (data.type == 'items') {
+			items = new Map();
+			for (var i = 0; i < data.items.length; i++) {
+				items.set(data.items[i].id, get_name(data.items[i].name));
+			}
+		} else if (data.type == 'itemadd') {
+			for (var i = 0; i < data.items.length; i++) {
+				items.set(data.id, get_name(data.name));
+			}
+		} else if (data.type == 'itemremove') {
+			items.delete(data.id);
+		}
+		console.log(items);
+	});
+	function get_name(name_str) {
+		var name = $(name_str).text();
+		var i = name.lastIndexOf(' ');
+		if (i >= 0) {
+			name = name.substr(i + 1);
+		}
+		return name;
+	}
 	
 	var task_h_timer, task_h_listener;
 	function stop_task() {
@@ -220,7 +248,37 @@
 		return pc;
 	}
 	function translate(args) {
-		if (args[0] == 'look') {
+		if (args[0] == 'items') {
+			Dialog.show('pack');
+			arg[0] = '';
+		} else if (args[0] == 'skills') {
+			Dialog.show('skills');
+			arg[0] = '';
+		} else if (args[0] == 'tasks') {
+			Dialog.show('tasks');
+			arg[0] = '';
+		} else if (args[0] == 'shop') {
+			Dialog.show('shop');
+			arg[0] = '';
+		} else if (args[0] == 'message') {
+			Dialog.show('message');
+			arg[0] = '';
+		} else if (args[0] == 'stats') {
+			Dialog.show('stats');
+			arg[0] = '';
+		} else if (args[0] == 'fly') {
+			args[0] = 'jh';
+			if (args[1]) {
+				var id = map_ids.get(args[1]);
+				if (id) {
+					args[1] = id;
+				}
+				args[1] = 'fam ' + args[1] + " start";
+			} else {
+				Dialog.show('jh');
+				arg[0] = '';
+			}
+		} else if (args[0] == 'look') {
 			if (!args[1]) {
 				args[0] = 'golook_room';
 			} else {
@@ -266,13 +324,6 @@
 				|| args[0] == 'down') {
 			args[1] = args[0];
 			args[0] = 'go';
-		} else if (args[0] == 'fly') {
-			args[0] = 'jh';
-			var id = map_ids.get(args[1]);
-			if (id) {
-				args[1] = id;
-			}
-			args[1] = 'fam ' + args[1] + " start";
 		} else if (args[0] == 'halt') {
 			args[0] = 'stopstate';
 			args[1] = '';
