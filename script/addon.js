@@ -23,6 +23,8 @@
 	aliases.set('h', 'halt');
 	aliases.set('dz', 'dazuo');
 	aliases.set('pfm', 'perform');
+	aliases.set('home', 'fly yz;w;w;n;enter');
+	aliases.set('yamen', 'fly yz;w;n;n');
 
 	var map_ids = new Map();
 	map_ids.set('yangzhou', '0');
@@ -78,36 +80,104 @@
 		_receive_message.apply(this, arguments);
 		for ( var i = 0; i < message_listeners.length; i++) {
 			var listener = message_listeners[i];
-			if (listener.types == 'msg' || (listener.types instanceof Array && $
-							.inArray('msg', listener.types) >= 0)) {
-				listener.fn({'type' : 'msg', 'msg' : msg});
+			if (listener.types == 'text' || (listener.types instanceof Array && $
+							.inArray('text', listener.types) >= 0)) {
+				listener.fn({'type' : 'text', 'msg' : msg});
 			}
 		}
 	};
+	function log(msg) {
+		ReceiveMessage('<hir>' + msg + '</hir>');
+	}
 	
-	var items = new Map();
-	add_listener(['items', 'itemadd', 'itemremove'], function(data) {
-		if (data.type == 'items') {
+	var room, items = new Map(), in_combat = false, combat_room, kill_targets = [], auto_loot_timeout;
+	add_listener(['room', 'items', 'itemadd', 'itemremove', 'combat', 'text'], function(data) {
+		if (data.type == 'room') {
+			room = data;
+		} else if (data.type == 'items') {
 			items = new Map();
 			for (var i = 0; i < data.items.length; i++) {
-				items.set(data.items[i].id, get_name(data.items[i].name));
+				var name = get_name(data.items[i].name);
+				items.set(data.items[i].id, name);
+				if (room.path == combat_room && kill_targets.length > 0) {
+					auto_loot(data.items[i].id, name);
+				}
 			}
 		} else if (data.type == 'itemadd') {
-			for (var i = 0; i < data.items.length; i++) {
-				items.set(data.id, get_name(data.name));
+			var name = get_name(data.name);
+			items.set(data.id, name);
+			if (room.path == combat_room && kill_targets.length > 0) {
+				auto_loot(data.id, name);
 			}
 		} else if (data.type == 'itemremove') {
 			items.delete(data.id);
+		} else if (data.type == 'combat') {
+			if (data.start) {
+				in_combat = true;
+				combat_room = room.path;
+				kill_targets = [];
+				if (auto_loot_timeout) {
+					clearTimeout(auto_loot_timeout);
+					auto_loot_timeout = undefined;
+				}
+			} else if (data.end) {
+				in_combat = false;
+				auto_loot_timeout = setTimeout(function() {
+					kill_targets = [];
+					auto_loot_timeout = undefined;
+				}, 120000);
+			}
+		} else if (data.type == 'text') {
+			if (in_combat) {
+				var r = get_text(data.msg).match(/^看起来(.+)想杀死你！$/);
+				if (r) {
+					kill_targets.push(r[1]);
+				}
+			}
 		}
-		console.log(items);
 	});
+	function get_text(str) {
+		return $.trim($('<body>' + str + '</body>').text());
+	}
 	function get_name(name_str) {
-		var name = $(name_str).text();
+		var name = get_text(name_str);
 		var i = name.lastIndexOf(' ');
 		if (i >= 0) {
-			name = name.substr(i + 1);
+			name = name.substr(i + 1).replace(/<.*>/g, '');
 		}
 		return name;
+	}
+	function get_title(name_str) {
+		var name = get_text(name_str);
+		var i = name.lastIndexOf(' ');
+		if (i >= 0) {
+			return name.substr(0, i);
+		}
+		return '';
+	}
+	function find_item(name) {
+		for (var [key, value] of items) {
+			if (value == name) {
+				return key;
+			}
+		}
+		return null;
+	}
+	function auto_loot(id, name) {
+		var r = name.match(/^(.+)的尸体$/);
+		if (r) {
+			var i = $.inArray(r[1], kill_targets);
+			if (i >= 0) {
+				send_cmd('get all from ' + id);
+				kill_targets.splice(i, 1);
+				if (auto_loot_timeout && kill_targets.length == 0) {
+					clearTimeout(auto_loot_timeout);
+					auto_loot_timeout = undefined;
+				}
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	var task_h_timer, task_h_listener;
@@ -115,11 +185,11 @@
 		if (task_h_timer) {
 			clearInterval(task_h_timer);
 			task_h_timer = undefined;
-			console.log('task stopped.');
+			log('task stopped.');
 		} else if (task_h_listener) {
 			remove_listener(task_h_listener);
 			task_h_listener = undefined;
-			console.log('task stopped.');
+			log('task stopped.');
 		}
 	}
 	function add_task_timer(fn, interval) {
@@ -131,6 +201,9 @@
 		task_h_listener = add_listener(types, subtype);
 	}
 
+	var task_trigger, task_timer, task_target;
+	var lian_trigger, lian_skill;
+	var xiangyang_trigger;
 	function execute_cmd(cmd) {
 		if (cmd.substr(0, 6) == '#loop ') {
 			cmd = $.trim(cmd.substr(6));
@@ -146,7 +219,7 @@
 				}
 				if (cmd) {
 					stop_task();
-					console.log('starting loop...');
+					log('starting loop...');
 					var pc;
 					add_task_timer(function() {
 						if (!pc) {
@@ -173,13 +246,119 @@
 			if (value) {
 				if (value != aliases.get(key)) {
 					aliases.set(key, value);
-					console.log("set alias ok.");
+					log("set alias ok.");
 				}
 			} else {
 				if (aliases.has(key)) {
 					aliases.delete(key);
-					console.log("alias removed.");
+					log("alias removed.");
 				}
+			}
+		} else if (cmd == '#t+ task') {
+			if (!task_trigger) {
+				log('open task trigger.');
+				// 高根明对你说道：为师最近突然想尝一下<wht>女儿红</wht>，你去帮我找一下吧。
+				task_trigger = add_listener('text', function(data) {
+					var r = data.msg.match(/^程药发对你说道：(.+)作恶多端，还请.+为民除害，听说他最近在(.+)\-(.+)出现过。$/);
+					if (r) {
+						task_target = r[1];
+					} else {
+						r = data.msg.match(/^<hig>你的追捕任务完成了，目前完成(\d+)\/(\d+)个，已连续完成(\d+)个。<\/hig>$/);
+						if (r) {
+							if (parseInt(r[1]) >= parseInt(r[2])) {
+								execute_cmd('#t- task');
+							}
+						}
+					}
+				});
+				task_timer = setInterval(function() {
+					if (task_target) {
+						var id = find_item(task_target);
+						if (id) {
+							send_cmd('kill ' + id);
+							task_target = undefined;
+						}
+					}
+				}, 200);
+			}
+		} else if (cmd == '#t- task') {
+			if (task_trigger) {
+				log('close task trigger.');
+				remove_listener(task_trigger);
+				task_trigger = undefined;
+				if (task_timer) {
+					clearInterval(task_timer);
+					task_timer = undefined;
+				}
+				task_target = undefined;
+			}
+		} else if (cmd.substr(0, 9) == '#t+ lian ') {
+			if (lian_trigger) {
+				execute_cmd('#t- lian');
+			}
+			lian_skill = $.trim(cmd.substr(9));
+			log('open lian ' + lian_skill + ' trigger.');
+			lian_trigger = add_listener(['msg', 'text'], function(data) {
+				if (data.type == 'text') {
+					if (data.msg == '你的基本功火候未到，必须先打好基础才能继续提高。'
+							|| data.msg == '你的潜能不够，无法继续练习下去了。') {
+						execute_cmd('#t- lian');
+						send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
+					} else {
+						var r = data.msg.match(/^<hig>你获得了(\d+)点经验，(\d+)点潜能。<\/hig>$/);
+						if (r) {
+							if (parseInt(r[1]) < 60) {
+								send_cmd('stopstate;go east;go east;go north;go enter;go west;lianxi ' + lian_skill);
+							}
+						}
+					}
+				} else if (data.type == 'msg' && data.ch == 'sys') {
+					var r = data.content.match(/^(.+)捡到一本挖矿指南，学会了里面记载的挖矿技巧，所有人的挖矿效率都提高了。$/);
+					if (r) {
+						send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
+					}
+				}
+			});
+		} else if (cmd == '#t- lian') {
+			if (lian_trigger) {
+				log('close lian ' + lian_skill + ' trigger.');
+				remove_listener(lian_trigger);
+				lian_trigger = undefined;
+				lian_skill = undefined;
+			}
+		} else if (cmd == '#t+ xiangyang') {
+			if (!xiangyang_trigger) {
+				log('open xiangyang trigger.');
+				xiangyang_trigger = add_listener(['items', 'itemadd'], function(data) {
+					if (data.type == 'items') {
+						for (var i = 0; i < data.items.length; i++) {
+							var title = get_title(data.items[i].name);
+							if (title == '蒙古兵') {
+								send_cmd('kill ' + data.items[i].id);
+							} else if (title == '十夫长') {
+								var id = data.items[i].id;
+								setTimeout(function() {
+									send_cmd('kill ' + id);
+								}, 500);
+							}
+						}
+					} else if (data.type == 'itemadd') {
+						var title = get_title(data.name);
+						if (title == '蒙古兵') {
+							send_cmd('kill ' + data.id);
+						} else if (title == '十夫长') {
+							setTimeout(function() {
+								send_cmd('kill ' + data.id);
+							}, 500);
+						}
+					}
+				});
+			}
+		} else if (cmd == '#t- xiangyang') {
+			if (xiangyang_trigger) {
+				log('close xiangyang trigger.');
+				remove_listener(xiangyang_trigger);
+				xiangyang_trigger = undefined;
 			}
 		} else if (cmd.substr(0, 1) == '#') {
 			var i = cmd.indexOf(' ');
@@ -250,22 +429,22 @@
 	function translate(args) {
 		if (args[0] == 'items') {
 			Dialog.show('pack');
-			arg[0] = '';
+			args[0] = '';
 		} else if (args[0] == 'skills') {
 			Dialog.show('skills');
-			arg[0] = '';
+			args[0] = '';
 		} else if (args[0] == 'tasks') {
 			Dialog.show('tasks');
-			arg[0] = '';
+			args[0] = '';
 		} else if (args[0] == 'shop') {
 			Dialog.show('shop');
-			arg[0] = '';
+			args[0] = '';
 		} else if (args[0] == 'message') {
 			Dialog.show('message');
-			arg[0] = '';
+			args[0] = '';
 		} else if (args[0] == 'stats') {
 			Dialog.show('stats');
-			arg[0] = '';
+			args[0] = '';
 		} else if (args[0] == 'fly') {
 			args[0] = 'jh';
 			if (args[1]) {
@@ -276,52 +455,114 @@
 				args[1] = 'fam ' + args[1] + " start";
 			} else {
 				Dialog.show('jh');
-				arg[0] = '';
+				args[0] = '';
 			}
-		} else if (args[0] == 'look') {
-			if (!args[1]) {
-				args[0] = 'golook_room';
-			} else {
-				var target = find_target(args[1]);
-				if (target) {
-					if (target[2] == 'npc') {
-						args[0] = 'look_npc';
-						args[1] = target[0];
-					} else if (target[2] == 'item') {
-						args[0] = 'look_item';
-						args[1] = target[0];
-					} else {
-						args[0] = 'score';
-						args[1] = target[0];
-					}
-				} else {
-					arg[0] = '';
-				}
-			}
-		} else if (args[0] == 'fight' || args[0] == 'watch') {
-			if (args[0] == 'watch') {
-				args[0] = 'watch_vs';
-			}
-			var target = find_target(args[1], [ 'npc', 'user' ]);
-			if (target) {
-				args[1] = target[0];
-			}
-		} else if (args[0] == 'kill' || args[0] == 'ask' || args[0] == 'give'
-				|| args[0] == 'buy') {
-			var target = find_target(args[1], [ 'npc' ]);
-			if (target) {
-				args[1] = target[0];
+		} else if (args[0] == 'look' || args[0] == 'fight' || args[0] == 'kill') {
+			var id = find_item(args[1]);
+			if (id) {
+				args[1] = id;
 			}
 		} else if (args[0] == 'get') {
-			var target = find_target(args[1], [ 'item' ]);
-			if (target) {
-				args[1] = target[0];
+			var id = find_item(args[1]);
+			if (id) {
+				args[1] = id;
+			}
+			args[1] = 'all from ' + args[1];
+		} else if (args[0] == 'buy') {
+			var r = args[1].match(/(\d+)\s+(.+)\s+from\s+(.+)/);
+			if (!r) {
+				r = ('1 ' + args[1]).match(/(\d+)\s+(.+)\s+from\s+(.+)/);
+			}
+			if (r) {
+				var id = find_item(r[3]);
+				if (id) {
+					var h = add_listener('dialog', function(data) {
+						if (data.dialog == 'list' && data.seller == id) {
+							for (var i = 0; i < data.selllist.length; i++) {
+								if (r[2] == data.selllist[i].name || r[2] == get_name(data.selllist[i].name)) {
+									send_cmd('buy ' + r[1] + ' ' + data.selllist[i].id + ' from ' + id);
+									break;
+								}
+							}
+							$('.dialog-close').click();
+							remove_listener(h);
+						}
+					});
+					args[0] = 'list';
+					args[1] = id;
+				}
+			}
+		} else if (args[0] == 'sell') {
+			var r = args[1].match(/(\d+)\s+(.+)\s+to\s+(.+)/);
+			if (!r) {
+				r = ('1 ' + args[1]).match(/(\d+)\s+(.+)\s+to\s+(.+)/);
+			}
+			if (r) {
+				var id = find_item(r[3]);
+				if (id) {
+					var h = add_listener('dialog', function(data) {
+						if (data.dialog == 'pack') {
+							for (var i = 0; i < data.items.length; i++) {
+								if (r[2] == data.items[i].name || r[2] == get_name(data.items[i].name)) {
+									send_cmd('sell ' + r[1] + ' ' + data.items[i].id + ' to ' + id);
+									break;
+								}
+							}
+							$('.dialog-close').click();
+							remove_listener(h);
+						}
+					});
+					args[0] = 'pack';
+					args[1] = '';
+				}
+			}
+		} else if (args[0] == 'qu') {
+			var r = args[1].match(/(\d+)\s+(.+)/);
+			if (!r) {
+				r = ('1 ' + args[1]).match(/(\d+)\s+(.+)/);
+			}
+			if (r) {
+				var h = add_listener('dialog', function(data) {
+					if (data.dialog == 'list' && data.stores) {
+						for (var i = 0; i < data.stores.length; i++) {
+							if (r[2] == data.stores[i].name || r[2] == get_name(data.stores[i].name)) {
+								send_cmd('qu ' + r[1] + ' ' + data.stores[i].id);
+								break;
+							}
+						}
+						$('.dialog-close').click();
+						remove_listener(h);
+					}
+				});
+				args[0] = 'store';
+				args[1] = '';
+			}
+		} else if (args[0] == 'cun') {
+			var r = args[1].match(/(\d+)\s+(.+)/);
+			if (!r) {
+				r = ('1 ' + args[1]).match(/(\d+)\s+(.+)/);
+			}
+			if (r) {
+				var h = add_listener('dialog', function(data) {
+					if (data.dialog == 'pack') {
+						for (var i = 0; i < data.items.length; i++) {
+							if (r[2] == data.items[i].name || r[2] == get_name(data.items[i].name)) {
+								send_cmd('store ' + r[1] + ' ' + data.items[i].id);
+								break;
+							}
+						}
+						$('.dialog-close').click();
+						remove_listener(h);
+					}
+				});
+				args[0] = 'pack';
+				args[1] = '';
 			}
 		} else if (args[0] == 'east' || args[0] == 'south' || args[0] == 'west'
 				|| args[0] == 'north' || args[0] == 'southeast'
 				|| args[0] == 'southwest' || args[0] == 'northeast'
 				|| args[0] == 'northwest' || args[0] == 'up'
-				|| args[0] == 'down') {
+				|| args[0] == 'down' || args[0] == 'enter' || args[0] == 'out') {
 			args[1] = args[0];
 			args[0] = 'go';
 		} else if (args[0] == 'halt') {
@@ -385,9 +626,12 @@
 					SendCommand('eq zsko12f23aa;perform force.xi;perform dodge.power;perform blade.chan;eq 9wow13462cb');
 					e.preventDefault();
 				} else if (e.which == 114) { // F3
-					SendCommand('perform force.xi;perform dodge.power;eq vfi2158ba5c;perform whip.chan;eq 9wow13462cb');
+					SendCommand('eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
 					e.preventDefault();
 				} else if (e.which == 115) { // F4
+					SendCommand('perform force.xi;perform dodge.power;eq vfi2158ba5c;perform whip.chan;eq 9wow13462cb');
+					e.preventDefault();
+				} else if (e.which == 116) { // F5
 					SendCommand('eq 9wow13462cb;perform force.xi;perform sword.poqi');
 					e.preventDefault();
 				} else if (e.which == 118) { // F7
@@ -397,7 +641,7 @@
 					SendCommand('eq 603z155852b;eq cd9r156c5c0;eq 38hd14d7d37;eq q0ui10f5a1d;eq lhc313bbbf4;eq buhp157ff22');
 					e.preventDefault();
 				} else if (e.which == 120) { // F9
-					SendCommand('jh fam 0 start;go west;go west;go north;go enter;go west;lianxi yunlongbian');
+					SendCommand('jh fam 0 start;go west;go west;go north;go enter;go west;lianxi dasongyangshenzhang');
 					e.preventDefault();
 				} else if (e.which == 121) { // F10
 					SendCommand('jh fam 0 start;go west;go west;go west;go west;eq dkdi128460d;wa');
@@ -433,5 +677,5 @@
 				return true;
 			});
 	window.mingy_addon = 1;
-	ReceiveMessage('<red>addon loaded</red>');
+	ReceiveMessage('<hir>addon loaded</hir>');
 })();
