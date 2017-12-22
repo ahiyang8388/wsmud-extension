@@ -202,7 +202,7 @@
 	}
 
 	var task_trigger, task_timer, task_target;
-	var lian_trigger, lian_skill;
+	var lian_trigger, lian_skill, xue_trigger, xue_skill;
 	var xiangyang_trigger;
 	function execute_cmd(cmd) {
 		if (cmd.substr(0, 6) == '#loop ') {
@@ -296,6 +296,9 @@
 			if (lian_trigger) {
 				execute_cmd('#t- lian');
 			}
+			if (xue_trigger) {
+				execute_cmd('#t- xue');
+			}
 			lian_skill = $.trim(cmd.substr(9));
 			log('open lian ' + lian_skill + ' trigger.');
 			lian_trigger = add_listener(['msg', 'text'], function(data) {
@@ -325,6 +328,47 @@
 				remove_listener(lian_trigger);
 				lian_trigger = undefined;
 				lian_skill = undefined;
+			}
+		} else if (cmd.substr(0, 8) == '#t+ xue ') {
+			if (xue_trigger) {
+				execute_cmd('#t- xue');
+			}
+			if (lian_trigger) {
+				execute_cmd('#t- lian');
+			}
+			xue_skill = $.trim(cmd.substr(8));
+			log('open xue ' + xue_skill + ' trigger.');
+			xue_trigger = add_listener(['msg', 'text'], function(data) {
+				if (data.type == 'text') {
+					if (data.msg == '你的潜能不够，无法继续学习下去了。'
+							|| data.msg == '这项技能你的程度已经不输你师父了。'
+							|| data.msg == '你要跟谁学习技能？') {
+						execute_cmd('#t- xue');
+						send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
+					} else {
+						var r = data.msg.match(/^<hig>你获得了(\d+)点经验，(\d+)点潜能。<\/hig>$/);
+						if (r) {
+							if (parseInt(r[1]) < 60) {
+								send_cmd('stopstate;go east;go east;go north;go enter;go west');
+								setTimeout(function() {
+									execute_cmd('xue ' + xue_skill);
+								}, 200);
+							}
+						}
+					}
+				} else if (data.type == 'msg' && data.ch == 'sys') {
+					var r = data.content.match(/^(.+)捡到一本挖矿指南，学会了里面记载的挖矿技巧，所有人的挖矿效率都提高了。$/);
+					if (r) {
+						send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
+					}
+				}
+			});
+		} else if (cmd == '#t- xue') {
+			if (xue_trigger) {
+				log('close xue ' + xue_skill + ' trigger.');
+				remove_listener(xue_trigger);
+				xue_trigger = undefined;
+				xue_skill = undefined;
 			}
 		} else if (cmd == '#t+ xiangyang') {
 			if (!xiangyang_trigger) {
@@ -468,6 +512,14 @@
 				args[1] = id;
 			}
 			args[1] = 'all from ' + args[1];
+		} else if (args[0] == 'xue') {
+			var r = args[1].match(/(.+)\s+from\s+(.+)/);
+			if (r) {
+				var id = find_item(r[2]);
+				if (id) {
+					args[1] = r[1] + ' from ' + id;
+				}
+			}
 		} else if (args[0] == 'buy') {
 			var r = args[1].match(/(\d+)\s+(.+)\s+from\s+(.+)/);
 			if (!r) {
@@ -626,10 +678,10 @@
 					SendCommand('eq zsko12f23aa;perform force.xi;perform dodge.power;perform blade.chan;eq 9wow13462cb');
 					e.preventDefault();
 				} else if (e.which == 114) { // F3
-					SendCommand('eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
+					SendCommand('eq 9wow13462cb;perform force.xi;perform sword.wu;perform unarmed.chan');
 					e.preventDefault();
 				} else if (e.which == 115) { // F4
-					SendCommand('perform force.xi;perform dodge.power;eq vfi2158ba5c;perform whip.chan;eq 9wow13462cb');
+					SendCommand('perform force.xi;eq a3gg1689bd4;perform whip.chan;eq 9wow13462cb');
 					e.preventDefault();
 				} else if (e.which == 116) { // F5
 					SendCommand('eq 9wow13462cb;perform force.xi;perform sword.poqi');
