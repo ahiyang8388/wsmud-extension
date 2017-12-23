@@ -303,7 +303,8 @@
 			log('open lian ' + lian_skill + ' trigger.');
 			lian_trigger = add_listener(['msg', 'text'], function(data) {
 				if (data.type == 'text') {
-					if (data.msg == '你的基本功火候未到，必须先打好基础才能继续提高。'
+					if (data.msg.match(/^也许是缺乏实战经验，你觉得你的.+已经到了瓶颈了。$/)
+							|| data.msg == '你的基本功火候未到，必须先打好基础才能继续提高。'
 							|| data.msg == '你的潜能不够，无法继续练习下去了。') {
 						execute_cmd('#t- lian');
 						send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
