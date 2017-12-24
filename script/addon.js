@@ -45,6 +45,9 @@
 	map_ids.set('xy2', '7');
 	map_ids.set('wudaota', '8');
 	map_ids.set('wdt', '8');
+	
+	var full_skills = ['sword', 'parry', 'dugujiujian', 'unarmed', 'dasongyangshenzhang',
+	                   'force', 'zixiashengong', 'dodge', 'tagexing'];
 
 	var message_listeners = [];
 	var listener_seq = 0;
@@ -202,7 +205,7 @@
 	}
 
 	var task_trigger, task_timer, task_target;
-	var lian_trigger, lian_skill, xue_trigger, xue_skill;
+	var lian_trigger, lian_skill, lian_index, xue_trigger, xue_skill;
 	var xiangyang_trigger;
 	function execute_cmd(cmd) {
 		if (cmd.substr(0, 6) == '#loop ') {
@@ -292,6 +295,43 @@
 				}
 				task_target = undefined;
 			}
+		} else if (cmd == '#t+ lian') {
+			if (lian_trigger) {
+				execute_cmd('#t- lian');
+			}
+			if (xue_trigger) {
+				execute_cmd('#t- xue');
+			}
+			lian_index = 0;
+			log('open lian trigger.');
+			lian_trigger = add_listener(['msg', 'text'], function(data) {
+				if (data.type == 'text') {
+					if (data.msg.match(/^也许是缺乏实战经验，你觉得你的.+已经到了瓶颈了。$/)
+							|| data.msg == '你的基本功火候未到，必须先打好基础才能继续提高。') {
+						if (++lian_index < full_skills.length) {
+							send_cmd('stopstate;lianxi ' + full_skills[lian_index]);
+						} else {
+							execute_cmd('#t- lian');
+							send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
+						}
+					} else if (data.msg == '你的潜能不够，无法继续练习下去了。') {
+						execute_cmd('#t- lian');
+						send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
+					} else {
+						var r = data.msg.match(/^<hig>你获得了(\d+)点经验，(\d+)点潜能。<\/hig>$/);
+						if (r) {
+							if (parseInt(r[1]) < 60) {
+								send_cmd('stopstate;go east;go east;go north;go enter;go west;lianxi ' + full_skills[lian_index]);
+							}
+						}
+					}
+				} else if (data.type == 'msg' && data.ch == 'sys') {
+					var r = data.content.match(/^(.+)捡到一本挖矿指南，学会了里面记载的挖矿技巧，所有人的挖矿效率都提高了。$/);
+					if (r) {
+						send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
+					}
+				}
+			});
 		} else if (cmd.substr(0, 9) == '#t+ lian ') {
 			if (lian_trigger) {
 				execute_cmd('#t- lian');
@@ -325,10 +365,15 @@
 			});
 		} else if (cmd == '#t- lian') {
 			if (lian_trigger) {
-				log('close lian ' + lian_skill + ' trigger.');
+				if (lian_skill) {
+					log('close lian ' + lian_skill + ' trigger.');
+				} else {
+					log('close lian trigger.');
+				}
 				remove_listener(lian_trigger);
 				lian_trigger = undefined;
 				lian_skill = undefined;
+				lian_index = undefined;
 			}
 		} else if (cmd.substr(0, 8) == '#t+ xue ') {
 			if (xue_trigger) {
@@ -691,7 +736,7 @@
 					SendCommand('eq iq8b15a9c27;eq o90j1582bc7;eq powh1516cbd;eq 9f1k1560253;eq sg9w14d7dca;eq x6e51518454');
 					e.preventDefault();
 				} else if (e.which == 119) { // F8
-					SendCommand('eq 603z155852b;eq cd9r156c5c0;eq 38hd14d7d37;eq q0ui10f5a1d;eq lhc313bbbf4;eq buhp157ff22');
+					SendCommand('eq 603z155852b;eq cd9r156c5c0;eq wxth16a8173;eq q0ui10f5a1d;eq lhc313bbbf4;eq buhp157ff22');
 					e.preventDefault();
 				} else if (e.which == 120) { // F9
 					SendCommand('jh fam 0 start;go west;go west;go north;go enter;go west;lianxi dasongyangshenzhang');
