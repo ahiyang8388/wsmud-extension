@@ -205,7 +205,7 @@
 	}
 
 	var task_trigger, task_timer, task_target;
-	var lian_trigger, lian_skill, lian_index, xue_trigger, xue_skill;
+	var lian_trigger, lian_skill, lian_index, xue_trigger, xue_skill, dazuo_trigger;
 	var xiangyang_trigger;
 	function execute_cmd(cmd) {
 		if (cmd.substr(0, 6) == '#loop ') {
@@ -302,6 +302,9 @@
 			if (xue_trigger) {
 				execute_cmd('#t- xue');
 			}
+			if (dazuo_trigger) {
+				execute_cmd("#t- dazuo");
+			}
 			lian_index = 0;
 			log('open lian trigger.');
 			lian_trigger = add_listener(['msg', 'text'], function(data) {
@@ -338,6 +341,9 @@
 			}
 			if (xue_trigger) {
 				execute_cmd('#t- xue');
+			}
+			if (dazuo_trigger) {
+				execute_cmd("#t- dazuo");
 			}
 			lian_skill = $.trim(cmd.substr(9));
 			log('open lian ' + lian_skill + ' trigger.');
@@ -382,6 +388,9 @@
 			if (lian_trigger) {
 				execute_cmd('#t- lian');
 			}
+			if (dazuo_trigger) {
+				execute_cmd("#t- dazuo");
+			}
 			xue_skill = $.trim(cmd.substr(8));
 			log('open xue ' + xue_skill + ' trigger.');
 			xue_trigger = add_listener(['msg', 'text'], function(data) {
@@ -415,6 +424,43 @@
 				remove_listener(xue_trigger);
 				xue_trigger = undefined;
 				xue_skill = undefined;
+			}
+		} else if (cmd == '#t+ dazuo') {
+			if (dazuo_trigger) {
+				execute_cmd("#t- dazuo");
+			}
+			if (lian_trigger) {
+				execute_cmd('#t- lian');
+			}
+			if (xue_trigger) {
+				execute_cmd('#t- xue');
+			}
+			log('open dazuo trigger.');
+			dazuo_trigger = add_listener(['msg', 'text'], function(data) {
+				if (data.type == 'text') {
+					if (data.msg == '<hiy>你运功完毕，深深吸了口气，站了起来。</hiy>') {
+						execute_cmd('#t- dazuo');
+						send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
+					} else {
+						var r = data.msg.match(/^<hig>你获得了(\d+)点经验，(\d+)点潜能。<\/hig>$/);
+						if (r) {
+							if (parseInt(r[1]) < 60) {
+								send_cmd('stopstate;go east;go east;go north;go enter;go west;dazuo');
+							}
+						}
+					}
+				} else if (data.type == 'msg' && data.ch == 'sys') {
+					var r = data.content.match(/^(.+)捡到一本挖矿指南，学会了里面记载的挖矿技巧，所有人的挖矿效率都提高了。$/);
+					if (r) {
+						send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
+					}
+				}
+			});
+		} else if (cmd == '#t- dazuo') {
+			if (dazuo_trigger) {
+				log('close dazuo trigger.');
+				remove_listener(dazuo_trigger);
+				dazuo_trigger = undefined;
 			}
 		} else if (cmd == '#t+ xiangyang') {
 			if (!xiangyang_trigger) {
