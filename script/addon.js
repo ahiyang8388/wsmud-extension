@@ -47,7 +47,8 @@
 	map_ids.set('wdt', '8');
 	
 	var full_skills = ['sword', 'parry', 'dugujiujian', 'unarmed', 'dasongyangshenzhang',
-	                   'force', 'zixiashengong', 'dodge', 'tagexing'];
+	                   'force', 'zixiashengong', 'whip', 'yunlongbian', 'blade', 'wuhuduanmendao',
+	                   'dodge', 'tagexing'];
 
 	var message_listeners = [];
 	var listener_seq = 0;
