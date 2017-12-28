@@ -49,6 +49,7 @@
 	var full_skills = ['sword', 'parry', 'dugujiujian', 'unarmed', 'dasongyangshenzhang',
 	                   'force', 'zixiashengong', 'whip', 'yunlongbian', 'blade', 'wuhuduanmendao',
 	                   'dodge', 'tagexing'];
+	var no_loot = false;
 
 	var message_listeners = [];
 	var listener_seq = 0;
@@ -168,6 +169,9 @@
 		return null;
 	}
 	function auto_loot(id, name) {
+		if (no_loot) {
+			return false;
+		}
 		var r = name.match(/^(.+)的尸体$/);
 		if (r) {
 			var i = $.inArray(r[1], kill_targets);
@@ -790,6 +794,10 @@
 					e.preventDefault();
 				} else if (e.which == 121) { // F10
 					SendCommand('jh fam 0 start;go west;go west;go west;go west;eq dkdi128460d;wa');
+					e.preventDefault();
+				} else if (e.which == 122) { // F11
+					no_loot = !no_loot;
+					log('set no_loot ' + no_loot);
 					e.preventDefault();
 				} else if (e.which == 97) {
 					SendCommand('go southwest');
