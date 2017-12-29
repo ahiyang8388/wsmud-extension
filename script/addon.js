@@ -793,7 +793,7 @@
 					SendCommand('jh fam 0 start;go west;go west;go north;go enter;go west;lianxi dasongyangshenzhang');
 					e.preventDefault();
 				} else if (e.which == 121) { // F10
-					SendCommand('jh fam 0 start;go west;go west;go west;go west;eq dkdi128460d;wa');
+					SendCommand('jh fam 0 start;go west;go west;go west;go west;eq qpei172983d;wa');
 					e.preventDefault();
 				} else if (e.which == 122) { // F11
 					no_loot = !no_loot;
