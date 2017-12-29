@@ -47,8 +47,8 @@
 	map_ids.set('wdt', '8');
 	
 	var full_skills = ['sword', 'parry', 'dugujiujian', 'unarmed', 'dasongyangshenzhang',
-	                   'force', 'zixiashengong', 'whip', 'yunlongbian', 'blade', 'wuhuduanmendao',
-	                   'dodge', 'tagexing'];
+	                   'force', 'zixiashengong', 'whip', 'yunlongbian', 'dodge', 'tagexing',
+	                   'blade', 'wuhuduanmendao', 'throwing', 'club', 'baguagun'];
 	var no_loot = false;
 
 	var message_listeners = [];
