@@ -317,26 +317,34 @@
 					if (data.msg.match(/^也许是缺乏实战经验，你觉得你的.+已经到了瓶颈了。$/)
 							|| data.msg == '你的基本功火候未到，必须先打好基础才能继续提高。') {
 						if (++lian_index < full_skills.length) {
-							send_cmd('stopstate;lianxi ' + full_skills[lian_index]);
+							var str = 'stopstate;';
+							if (full_skills[lian_index] == 'wuhuduanmendao') {
+								str += 'eq zsko12f23aa;';
+							}
+							send_cmd(str + 'lianxi ' + full_skills[lian_index]);
 						} else {
 							execute_cmd('#t- lian');
-							send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
+							send_cmd('stopstate;go east;go out;go south;go west;go west;eq qpei172983d;wa');
 						}
 					} else if (data.msg == '你的潜能不够，无法继续练习下去了。') {
 						execute_cmd('#t- lian');
-						send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
+						send_cmd('stopstate;go east;go out;go south;go west;go west;eq qpei172983d;wa');
 					} else {
 						var r = data.msg.match(/^<hig>你获得了(\d+)点经验，(\d+)点潜能。<\/hig>$/);
 						if (r) {
 							if (parseInt(r[1]) < 60) {
-								send_cmd('stopstate;go east;go east;go north;go enter;go west;lianxi ' + full_skills[lian_index]);
+								var str = 'stopstate;go east;go east;go north;go enter;go west;';
+								if (full_skills[lian_index] == 'wuhuduanmendao') {
+									str += 'eq zsko12f23aa;';
+								}
+								send_cmd(str + 'lianxi ' + full_skills[lian_index]);
 							}
 						}
 					}
 				} else if (data.type == 'msg' && data.ch == 'sys') {
 					var r = data.content.match(/^(.+)捡到一本挖矿指南，学会了里面记载的挖矿技巧，所有人的挖矿效率都提高了。$/);
 					if (r) {
-						send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
+						send_cmd('stopstate;go east;go out;go south;go west;go west;eq qpei172983d;wa');
 					}
 				}
 			});
@@ -358,19 +366,23 @@
 							|| data.msg == '你的基本功火候未到，必须先打好基础才能继续提高。'
 							|| data.msg == '你的潜能不够，无法继续练习下去了。') {
 						execute_cmd('#t- lian');
-						send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
+						send_cmd('stopstate;go east;go out;go south;go west;go west;eq qpei172983d;wa');
 					} else {
 						var r = data.msg.match(/^<hig>你获得了(\d+)点经验，(\d+)点潜能。<\/hig>$/);
 						if (r) {
 							if (parseInt(r[1]) < 60) {
-								send_cmd('stopstate;go east;go east;go north;go enter;go west;lianxi ' + lian_skill);
+								var str = 'stopstate;go east;go east;go north;go enter;go west;';
+								if (lian_skill == 'wuhuduanmendao') {
+									str += 'eq zsko12f23aa;';
+								}
+								send_cmd(str + 'lianxi ' + lian_skill);
 							}
 						}
 					}
 				} else if (data.type == 'msg' && data.ch == 'sys') {
 					var r = data.content.match(/^(.+)捡到一本挖矿指南，学会了里面记载的挖矿技巧，所有人的挖矿效率都提高了。$/);
 					if (r) {
-						send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
+						send_cmd('stopstate;go east;go out;go south;go west;go west;eq qpei172983d;wa');
 					}
 				}
 			});
