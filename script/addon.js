@@ -25,6 +25,11 @@
 	aliases.set('pfm', 'perform');
 	aliases.set('home', 'fly yz;w;w;n;enter');
 	aliases.set('yamen', 'fly yz;w;n;n');
+	aliases.set('p1', 'eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu');
+	aliases.set('p2', 'eq zsko12f23aa;perform force.xi;perform dodge.power;perform blade.chan;eq 9wow13462cb');
+	aliases.set('p3', 'eq 9wow13462cb;perform force.xi;perform sword.wu;perform unarmed.chan');
+	aliases.set('p4', 'perform force.xi;eq a3gg1689bd4;perform whip.chan;eq 9wow13462cb');
+	aliases.set('p5', 'eq 9wow13462cb;perform force.xi;perform sword.poqi');
 
 	var map_ids = new Map();
 	map_ids.set('yangzhou', '0');
@@ -513,8 +518,8 @@
 				remove_listener(xiangyang_trigger);
 				xiangyang_trigger = undefined;
 			}
-		} else if (cmd == '#combat') {
-			log('open auto combat...');
+		} else if (cmd == '#combat 1') {
+			log('open auto combat mode 1...');
 			var my_id = find_item('帝释天');
 			var action_state, is_busy;
 			add_task_listener(['combat', 'status', 'dispfm'], function(data) {
@@ -546,7 +551,7 @@
 						}
 					}
 				} else if (data.type == 'dispfm') {
-					if (action_state == 4) {
+					if (data.id == 'whip.chan' && action_state == 4) {
 						setTimeout(function() {
 							action_state = 8;
 							send_cmd('eq 9wow13462cb');
@@ -559,21 +564,88 @@
 								send_cmd('eq 9wow13462cb');
 							} */
 						}, data.rtime);
-					} else if (action_state == 5) {
+					} else if (!data.id && action_state == 5) {
 						setTimeout(function() {
 							action_state = 6;
 							send_cmd('perform force.xi;perform dodge.power;perform blade.chan');
 						}, data.rtime);
-					} else if (action_state == 6) {
+					} else if (data.id == 'blade.chan' && action_state == 6) {
 						setTimeout(function() {
 							action_state = 7;
 							send_cmd('eq 9wow13462cb');
 						}, data.rtime);
-					} else if (action_state == 7) {
+					} else if (!data.id && action_state == 7) {
 						setTimeout(function() {
 							if (action_state == 7) {
 								action_state = 1;
 								send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
+							}
+						}, data.rtime);
+					}
+				}
+			});
+		} else if (cmd == '#combat 2') {
+			log('open auto combat mode 2...');
+			var my_id = find_item('帝释天');
+			var action_state, is_busy;
+			add_task_listener(['combat', 'status', 'dispfm'], function(data) {
+				if (data.type == 'combat') {
+					if (data.start) {
+						is_busy = false;
+						action_state = 1;
+						send_cmd('eq a3gg1689bd4;perform whip.chan');
+					}
+				} else if (data.type == 'status') {
+					if (data.action == 'add' && data.id != my_id && data.sid == 'busy') {
+						is_busy = true;
+					} else if (data.action == 'remove' && data.id != my_id && data.sid == 'busy') {
+						is_busy = false;
+						if (action_state == 4) {
+							action_state = 5;
+							send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
+						} else if (action_state == 5) {
+							action_state = 6;
+							send_cmd('perform force.xi;perform dodge.power;perform sword.poqi');
+						} else if (action_state == 7) {
+							action_state = 1;
+							send_cmd('perform whip.chan');
+						}
+					} else if (data.action == 'remove' && data.id == my_id && data.sid == 'sword') {
+						if (action_state == 6) {
+							action_state = 7;
+							send_cmd('eq a3gg1689bd4');
+						}
+					}
+				} else if (data.type == 'dispfm') {
+					if (data.id == 'whip.chan' && action_state == 1) {
+						setTimeout(function() {
+							if (is_busy) {
+								action_state = 2;
+								send_cmd('eq zsko12f23aa');
+							}
+						}, data.rtime);
+					} else if (!data.id && action_state == 2) {
+						setTimeout(function() {
+							action_state = 3;
+							send_cmd('perform force.xi;perform dodge.power;perform blade.chan');
+						}, data.rtime);
+					} else if (data.id == 'blade.chan' && action_state == 3) {
+						setTimeout(function() {
+							action_state = 4;
+							send_cmd('eq 9wow13462cb');
+						}, data.rtime);
+					} else if (!data.id && action_state == 4) {
+						setTimeout(function() {
+							if (action_state == 4) {
+								action_state = 5;
+								send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
+							}
+						}, data.rtime);
+					} else if (!data.id && action_state == 7) {
+						setTimeout(function() {
+							if (action_state == 7) {
+								action_state = 1;
+								send_cmd('perform whip.chan');
 							}
 						}, data.rtime);
 					}
@@ -847,19 +919,19 @@
 	$(document).keydown(
 			function(e) {
 				if (e.which == 112) { // F1
-					SendCommand('eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu');
+					SendCommand(aliases.get('p1'));
 					e.preventDefault();
 				} else if (e.which == 113) { // F2
-					SendCommand('eq zsko12f23aa;perform force.xi;perform dodge.power;perform blade.chan;eq 9wow13462cb');
+					SendCommand(aliases.get('p2'));
 					e.preventDefault();
 				} else if (e.which == 114) { // F3
-					SendCommand('eq 9wow13462cb;perform force.xi;perform sword.wu;perform unarmed.chan');
+					SendCommand(aliases.get('p3'));
 					e.preventDefault();
 				} else if (e.which == 115) { // F4
-					SendCommand('perform force.xi;eq a3gg1689bd4;perform whip.chan;eq 9wow13462cb');
+					SendCommand(aliases.get('p4'));
 					e.preventDefault();
 				} else if (e.which == 116) { // F5
-					SendCommand('eq 9wow13462cb;perform force.xi;perform sword.poqi');
+					SendCommand(aliases.get('p5'));
 					e.preventDefault();
 				} else if (e.which == 118) { // F7
 					SendCommand('eq iq8b15a9c27;eq o90j1582bc7;eq powh1516cbd;eq 9f1k1560253;eq sg9w14d7dca;eq x6e51518454');
