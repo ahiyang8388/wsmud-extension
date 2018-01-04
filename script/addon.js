@@ -25,11 +25,11 @@
 	aliases.set('pfm', 'perform');
 	aliases.set('home', 'fly yz;w;w;n;enter');
 	aliases.set('yamen', 'fly yz;w;n;n');
-	aliases.set('p1', 'eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu');
-	aliases.set('p2', 'eq zsko12f23aa;perform force.xi;perform dodge.power;perform blade.chan;eq 9wow13462cb');
-	aliases.set('p3', 'eq 9wow13462cb;perform force.xi;perform sword.wu;perform unarmed.chan');
-	aliases.set('p4', 'perform force.xi;eq a3gg1689bd4;perform whip.chan;eq 9wow13462cb');
-	aliases.set('p5', 'eq 9wow13462cb;perform force.xi;perform sword.poqi');
+	aliases.set('p1', 'perform force.xi;perform dodge.power;perform sword.wu');
+	aliases.set('p2', 'perform force.xi;perform dodge.power;perform blade.chan');
+	aliases.set('p3', 'perform force.xi;perform sword.wu;perform unarmed.chan');
+	aliases.set('p4', 'perform whip.chan');
+	aliases.set('p5', 'perform sword.poqi');
 
 	var map_ids = new Map();
 	map_ids.set('yangzhou', '0');
@@ -53,7 +53,7 @@
 	
 	var full_skills = ['sword', 'parry', 'dugujiujian', 'unarmed', 'dasongyangshenzhang',
 	                   'force', 'zixiashengong', 'whip', 'yunlongbian', 'dodge', 'tagexing',
-	                   'blade', 'wuhuduanmendao', 'throwing', 'club', 'baguagun'];
+	                   'blade', 'wuhuduanmendao', 'throwing']; // , 'club', 'baguagun'
 	var no_loot = false;
 
 	var message_listeners = [];
@@ -100,9 +100,11 @@
 		ReceiveMessage('<hir>' + msg + '</hir>');
 	}
 	
-	var room, items = new Map(), in_combat = false, combat_room, kill_targets = [], auto_loot_timeout;
-	add_listener(['room', 'items', 'itemadd', 'itemremove', 'combat', 'text'], function(data) {
-		if (data.type == 'room') {
+	var my_id, room, items = new Map(), in_combat = false, combat_room, kill_targets = [], auto_loot_timeout;
+	add_listener(['login', 'room', 'items', 'itemadd', 'itemremove', 'combat', 'text'], function(data) {
+		if (data.type == 'login') {
+			my_id = data.id;
+		} else if (data.type == 'room') {
 			room = data;
 		} else if (data.type == 'items') {
 			items = new Map();
@@ -520,7 +522,6 @@
 			}
 		} else if (cmd == '#combat 1') {
 			log('open auto combat mode 1...');
-			var my_id = find_item('帝释天');
 			var action_state, is_busy;
 			add_task_listener(['combat', 'status', 'dispfm'], function(data) {
 				if (data.type == 'combat') {
@@ -586,7 +587,6 @@
 			});
 		} else if (cmd == '#combat 2') {
 			log('open auto combat mode 2...');
-			var my_id = find_item('帝释天');
 			var action_state, is_busy;
 			add_task_listener(['combat', 'status', 'dispfm'], function(data) {
 				if (data.type == 'combat') {
@@ -646,6 +646,42 @@
 							if (action_state == 7) {
 								action_state = 1;
 								send_cmd('perform whip.chan');
+							}
+						}, data.rtime);
+					}
+				}
+			});
+		} else if (cmd == '#combat 3') {
+			log('open auto combat mode 3...');
+			var action_state, is_busy;
+			add_task_listener(['combat', 'status', 'dispfm'], function(data) {
+				if (data.type == 'combat') {
+					if (data.start) {
+						is_busy = false;
+						action_state = 1;
+						send_cmd('eq zsko12f23aa;perform force.xi;perform unarmed.chan');
+					}
+				} else if (data.type == 'status') {
+					if (data.action == 'add' && data.id != my_id && data.sid == 'busy') {
+						is_busy = true;
+					} else if (data.action == 'remove' && data.id != my_id && data.sid == 'busy') {
+						is_busy = false;
+						if (action_state == 1) {
+							action_state = 2;
+							send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi');
+						} else if (action_state == 2) {
+							action_state = 3;
+							send_cmd('perform whip.chan');
+						} else if (action_state == 3) {
+							action_state = 1;
+							send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
+						}
+					}
+				} else if (data.type == 'dispfm') {
+					if (data.id == 'unarmed.chan' || data.id == 'sword.poqi' || data.id == 'whip.chan') {
+						setTimeout(function() {
+							if (is_busy) {
+								send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform blade.chan');
 							}
 						}, data.rtime);
 					}
