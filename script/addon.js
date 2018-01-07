@@ -25,7 +25,7 @@
 	aliases.set('pfm', 'perform');
 	aliases.set('home', 'fly yz;w;w;n;enter');
 	aliases.set('yamen', 'fly yz;w;n;n');
-	aliases.set('p1', 'eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu');
+	aliases.set('p1', 'eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu;throwing.jiang');
 	aliases.set('p2', 'eq zsko12f23aa;perform force.xi;perform dodge.power;perform blade.chan;eq 9wow13462cb');
 	aliases.set('p3', 'eq 9wow13462cb;perform force.xi;perform sword.wu;perform unarmed.chan');
 	aliases.set('p4', 'eq a3gg1689bd4;perform force.xi;perform whip.chan;eq 9wow13462cb');
@@ -53,8 +53,9 @@
 	
 	var full_skills = ['sword', 'parry', 'dugujiujian', 'unarmed', 'dasongyangshenzhang',
 	                   'force', 'zixiashengong', 'whip', 'yunlongbian', 'dodge', 'tagexing',
-	                   'blade', 'wuhuduanmendao', 'throwing']; // , 'club', 'baguagun'
+	                   'blade', 'wuhuduanmendao', 'throwing', 'jinshezhui']; // , 'club', 'baguagun'
 	var no_loot = false;
+	var cooldowns = new Map();
 
 	var message_listeners = [];
 	var listener_seq = 0;
@@ -100,8 +101,8 @@
 		ReceiveMessage('<hir>' + msg + '</hir>');
 	}
 	
-	var my_id, room, items = new Map(), in_combat = false, combat_room, kill_targets = [], auto_loot_timeout;
-	add_listener(['login', 'room', 'items', 'itemadd', 'itemremove', 'combat', 'text'], function(data) {
+	var my_id, room, items = new Map(), in_combat = false, i_am_ready = true, i_am_busy = false, combat_room, kill_targets = [], auto_loot_timeout;
+	add_listener(['login', 'room', 'items', 'itemadd', 'itemremove', 'combat', 'text', 'dispfm', 'status'], function(data) {
 		if (data.type == 'login') {
 			my_id = data.id;
 		} else if (data.type == 'room') {
@@ -144,6 +145,27 @@
 				var r = get_text(data.msg).match(/^看起来(.+)想杀死你！$/);
 				if (r) {
 					kill_targets.push(r[1]);
+				}
+			}
+		} else if (data.type == 'dispfm') {
+			if (data.rtime) {
+				i_am_ready = false;
+				setTimeout(function() {
+					i_am_ready = true;
+				}, data.rtime);
+			}
+			if (data.id && data.distime) {
+				cooldowns.set(data.id, true);
+				setTimeout(function() {
+					cooldowns.set(data.id, false);
+				}, data.distime);
+			}
+		} else if (data.type == 'status') {
+			if (data.id == my_id && data.sid == 'busy') {
+				if (data.action == 'add') {
+					i_am_busy = true;
+				} else if (data.action == 'remove') {
+					i_am_busy = false;
 				}
 			}
 		}
@@ -193,6 +215,26 @@
 			}
 		}
 		return false;
+	}
+	
+	var has_send_stopstate = false;
+	function stop_state() {
+		send_cmd('stopstate');
+		has_send_stopstate = true;
+		setTimeout(function() {
+			has_send_stopstate = false;
+		}, 500);
+	}
+	
+	function try_perform(id) {
+		if (cooldowns.get(id)) {
+			return false;
+		}
+		if ($('span.pfm-item[pid="' + id + '"]').length == 0) {
+			return false;
+		}
+		send_cmd('perform ' + id);
+		return true;
 	}
 	
 	var task_h_timer, task_h_listener;
@@ -462,7 +504,7 @@
 			log('open dazuo trigger.');
 			dazuo_trigger = add_listener(['msg', 'text'], function(data) {
 				if (data.type == 'text') {
-					if (data.msg == '<hiy>你运功完毕，深深吸了口气，站了起来。</hiy>') {
+					if (data.msg == '<hic>你觉得你的经脉充盈，已经没有办法再增加内力了。</hic>') {
 						execute_cmd('#t- dazuo');
 						send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
 					} else {
@@ -494,8 +536,10 @@
 						for (var i = 0; i < data.items.length; i++) {
 							var title = get_title(data.items[i].name);
 							if (title == '蒙古兵') {
+								stop_state();
 								send_cmd('kill ' + data.items[i].id);
 							} else if (title == '十夫长') {
+								stop_state();
 								var id = data.items[i].id;
 								setTimeout(function() {
 									send_cmd('kill ' + id);
@@ -505,8 +549,10 @@
 					} else if (data.type == 'itemadd') {
 						var title = get_title(data.name);
 						if (title == '蒙古兵') {
+							stop_state();
 							send_cmd('kill ' + data.id);
 						} else if (title == '十夫长') {
+							stop_state();
 							setTimeout(function() {
 								send_cmd('kill ' + data.id);
 							}, 500);
@@ -520,6 +566,18 @@
 				remove_listener(xiangyang_trigger);
 				xiangyang_trigger = undefined;
 			}
+		} else if (cmd == '#combat') {
+			log('open auto combat...');
+			add_task_timer(function() {
+				if (in_combat && i_am_ready && !i_am_busy) {
+					try_perform('force.xi');
+					try_perform('dodge.power');
+					try_perform('sword.wu');
+					try_perform('blade.chan');
+					try_perform('throwing.jiang');
+					try_perform('unarmed.chan');
+				}
+			}, 200);
 		} else if (cmd == '#combat 1') {
 			log('open auto combat mode 1...');
 			var action_state, is_busy;
@@ -934,7 +992,7 @@
 					SendCommand(aliases.get('p5'));
 					e.preventDefault();
 				} else if (e.which == 118) { // F7
-					SendCommand('eq iq8b15a9c27;eq o90j1582bc7;eq powh1516cbd;eq 9f1k1560253;eq sg9w14d7dca;eq x6e51518454');
+					SendCommand('eq iq8b15a9c27;eq o90j1582bc7;eq powh1516cbd;eq 40z51332c8f;eq sg9w14d7dca;eq x6e51518454');
 					e.preventDefault();
 				} else if (e.which == 119) { // F8
 					SendCommand('eq 603z155852b;eq cd9r156c5c0;eq wxth16a8173;eq q0ui10f5a1d;eq lhc313bbbf4;eq buhp157ff22');
