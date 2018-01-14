@@ -53,7 +53,7 @@
 	
 	var full_skills = ['sword', 'parry', 'dugujiujian', 'unarmed', 'dasongyangshenzhang',
 	                   'force', 'zixiashengong', 'whip', 'yunlongbian', 'dodge', 'tagexing',
-	                   'blade', 'wuhuduanmendao', 'throwing', 'jinshezhui']; // , 'club', 'baguagun'
+	                   'blade', 'wuhuduanmendao', 'throwing', 'jinshezhui', 'club', 'baguagun'];
 	var no_loot = false;
 	var cooldowns = new Map();
 
