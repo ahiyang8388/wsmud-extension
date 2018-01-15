@@ -52,7 +52,7 @@
 	map_ids.set('wdt', '8');
 	
 	var full_skills = ['sword', 'parry', 'dugujiujian', 'unarmed', 'dasongyangshenzhang',
-	                   'force', 'zixiashengong', 'whip', 'yunlongbian', 'dodge', 'tagexing',
+	                   'force', 'zixiashengong2', 'whip', 'yunlongbian', 'dodge', 'tagexing',
 	                   'blade', 'wuhuduanmendao', 'throwing', 'jinshezhui', 'club', 'baguagun'];
 	var no_loot = false;
 	var cooldowns = new Map();
