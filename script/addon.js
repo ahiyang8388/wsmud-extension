@@ -24,11 +24,12 @@
 	aliases.set('dz', 'dazuo');
 	aliases.set('pfm', 'perform');
 	aliases.set('home', 'fly yz;w;w;n;enter');
+	aliases.set('full', 'fly yz;n;n;w;eq 9wow13462cb;heal');
 	aliases.set('yamen', 'fly yz;w;n;n');
-	aliases.set('p1', 'eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu;throwing.jiang');
-	aliases.set('p2', 'eq zsko12f23aa;perform force.xi;perform dodge.power;perform blade.chan;eq 9wow13462cb');
-	aliases.set('p3', 'eq 9wow13462cb;perform force.xi;perform sword.wu;perform unarmed.chan');
-	aliases.set('p4', 'eq a3gg1689bd4;perform force.xi;perform whip.chan;eq 9wow13462cb');
+	aliases.set('p1', 'eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu');
+	aliases.set('p2', 'eq jnk618b6c80;perform force.xi;perform dodge.power;perform blade.chan');
+	aliases.set('p3', 'perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
+	aliases.set('p4', 'eq a3gg1689bd4;perform force.xi;perform whip.chan');
 	aliases.set('p5', 'eq 9wow13462cb;perform force.xi;perform sword.poqi');
 
 	var map_ids = new Map();
@@ -368,7 +369,7 @@
 						if (++lian_index < full_skills.length) {
 							var str = 'stopstate;';
 							if (full_skills[lian_index] == 'wuhuduanmendao') {
-								str += 'eq zsko12f23aa;';
+								str += 'eq jnk618b6c80;';
 							}
 							send_cmd(str + 'lianxi ' + full_skills[lian_index]);
 						} else {
@@ -384,7 +385,7 @@
 							if (parseInt(r[1]) < 60) {
 								var str = 'stopstate;go east;go east;go north;go enter;go west;';
 								if (full_skills[lian_index] == 'wuhuduanmendao') {
-									str += 'eq zsko12f23aa;';
+									str += 'eq jnk618b6c80;';
 								}
 								send_cmd(str + 'lianxi ' + full_skills[lian_index]);
 							}
@@ -422,7 +423,7 @@
 							if (parseInt(r[1]) < 60) {
 								var str = 'stopstate;go east;go east;go north;go enter;go west;';
 								if (lian_skill == 'wuhuduanmendao') {
-									str += 'eq zsko12f23aa;';
+									str += 'eq jnk618b6c80;';
 								}
 								send_cmd(str + 'lianxi ' + lian_skill);
 							}
@@ -605,8 +606,11 @@
 						}
 					} else if (data.action == 'remove' && data.id == my_id && data.sid == 'sword') {
 						if (action_state == 2) {
+							/*
 							action_state = 3;
-							send_cmd('eq a3gg1689bd4');
+							send_cmd('eq a3gg1689bd4'); */
+							action_state = 5;
+							send_cmd('eq jnk618b6c80');
 						}
 					}
 				} else if (data.type == 'dispfm') {
@@ -617,7 +621,7 @@
 							/*
 							if (is_busy) {
 								action_state = 5;
-								send_cmd('eq zsko12f23aa');
+								send_cmd('eq jnk618b6c80');
 							} else {
 								action_state = 0;
 								send_cmd('eq 9wow13462cb');
@@ -631,13 +635,18 @@
 					} else if (data.id == 'blade.chan' && action_state == 6) {
 						setTimeout(function() {
 							action_state = 7;
+							send_cmd('perform force.xi;perform dodge.power;perform unarmed.chan');
+						}, data.rtime);
+					} else if (data.id == 'unarmed.chan' && action_state == 7) {
+						setTimeout(function() {
+							action_state = 8;
 							send_cmd('eq 9wow13462cb');
 						}, data.rtime);
-					} else if (!data.id && action_state == 7) {
+					} else if (!data.id && action_state == 8) {
 						setTimeout(function() {
-							if (action_state == 7) {
+							if (action_state == 8) {
 								action_state = 1;
-								send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
+								send_cmd('perform force.xi;perform dodge.power;perform sword.wu');
 							}
 						}, data.rtime);
 					}
@@ -679,7 +688,7 @@
 						setTimeout(function() {
 							if (is_busy) {
 								action_state = 2;
-								send_cmd('eq zsko12f23aa');
+								send_cmd('eq jnk618b6c80');
 							}
 						}, data.rtime);
 					} else if (!data.id && action_state == 2) {
@@ -995,7 +1004,7 @@
 					SendCommand('eq 86q7155246a;eq cd9r156c5c0;eq 2qfb188cf4d;eq 40z51332c8f;eq sg9w14d7dca;eq x6e51518454');
 					e.preventDefault();
 				} else if (e.which == 118) { // F7
-					SendCommand('eq iq8b15a9c27;eq powh1516cbd;eq 2qfb188cf4d;eq 40z51332c8f;eq sg9w14d7dca;eq x6e51518454');
+					SendCommand('eq iq8b15a9c27;eq 1tgm18a2aaf;eq 2qfb188cf4d;eq 40z51332c8f;eq sg9w14d7dca;eq x6e51518454');
 					e.preventDefault();
 				} else if (e.which == 119) { // F8
 					SendCommand('eq 603z155852b;eq cd9r156c5c0;eq wxth16a8173;eq q0ui10f5a1d;eq lhc313bbbf4;eq buhp157ff22');
