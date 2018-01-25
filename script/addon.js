@@ -54,7 +54,7 @@
 	
 	var full_skills = ['sword', 'parry', 'dugujiujian2', 'unarmed', 'dasongyangshenzhang',
 	                   'force', 'zixiashengong2', 'whip', 'yunlongbian', 'dodge', 'tagexing',
-	                   'blade', 'wuhuduanmendao', 'throwing', 'jinshezhui', 'club', 'baguagun'];
+	                   'blade', 'wuhuduanmendao', 'throwing', 'jinshezhui']; // , 'club', 'baguagun'
 	var no_loot = false;
 	var cooldowns = new Map();
 
@@ -589,7 +589,7 @@
 						action_state = 1;
 						send_cmd('eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
 					}
-				} else if (data.type == 'status') {
+				} else if (in_combat && data.type == 'status') {
 					if (data.action == 'add' && data.id != my_id && data.sid == 'busy') {
 						is_busy = true;
 					} else if (data.action == 'remove' && data.id != my_id && data.sid == 'busy') {
@@ -613,7 +613,7 @@
 							send_cmd('eq jnk618b6c80');
 						}
 					}
-				} else if (data.type == 'dispfm') {
+				} else if (in_combat && data.type == 'dispfm') {
 					if (data.id == 'whip.chan' && action_state == 4) {
 						setTimeout(function() {
 							action_state = 8;
@@ -662,7 +662,7 @@
 						action_state = 1;
 						send_cmd('eq a3gg1689bd4;perform whip.chan');
 					}
-				} else if (data.type == 'status') {
+				} else if (in_combat && data.type == 'status') {
 					if (data.action == 'add' && data.id != my_id && data.sid == 'busy') {
 						is_busy = true;
 					} else if (data.action == 'remove' && data.id != my_id && data.sid == 'busy') {
@@ -683,7 +683,7 @@
 							send_cmd('eq a3gg1689bd4');
 						}
 					}
-				} else if (data.type == 'dispfm') {
+				} else if (in_combat && data.type == 'dispfm') {
 					if (data.id == 'whip.chan' && action_state == 1) {
 						setTimeout(function() {
 							if (is_busy) {
@@ -714,6 +714,64 @@
 								action_state = 1;
 								send_cmd('perform whip.chan');
 							}
+						}, data.rtime);
+					}
+				}
+			});
+		} else if (cmd == '#combat 3') {
+			log('open auto combat mode 3...');
+			var action_state, is_busy;
+			add_task_listener(['combat', 'status', 'dispfm'], function(data) {
+				if (data.type == 'combat') {
+					if (data.start) {
+						is_busy = false;
+						action_state = 1;
+						send_cmd('eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
+					}
+				} else if (in_combat && data.type == 'status') {
+					if (data.action == 'add' && data.id != my_id && data.sid == 'busy') {
+						is_busy = true;
+						log('busy time: ' + data.duration);
+						if (action_state == 2) {
+							setTimeout(function() {
+								if (!cooldowns.get('whip.chan')) {
+									send_cmd('eq a3gg1689bd4');
+								} else {
+									action_state = 0;
+								}
+							}, data.duration - 3000);
+						}
+					} else if (data.action == 'remove' && data.id != my_id && data.sid == 'busy') {
+						is_busy = false;
+						if (action_state == 1) {
+							action_state = 2;
+							send_cmd('perform force.xi;perform dodge.power;perform sword.poqi');
+						} else if (action_state == 2) {
+							action_state = 3;
+							send_cmd('perform whip.chan');
+						} else if (action_state == 4) {
+							action_state = 1;
+							send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
+						}
+					}
+				} else if (in_combat && data.type == 'dispfm') {
+					if (!data.id && action_state == 2) {
+						setTimeout(function() {
+							action_state = 3;
+							send_cmd('perform whip.chan');
+						}, data.rtime);
+					} else if (data.id == 'whip.chan' && action_state == 3) {
+						setTimeout(function() {
+							send_cmd('eq jnk618b6c80');
+						}, data.rtime);
+					} else if (!data.id && action_state == 3) {
+						setTimeout(function() {
+							action_state = 4;
+							send_cmd('perform force.xi;perform dodge.power;perform blade.chan');
+						}, data.rtime);
+					} else if (data.id == 'blade.chan' && action_state == 4) {
+						setTimeout(function() {
+							send_cmd('eq 9wow13462cb');
 						}, data.rtime);
 					}
 				}
