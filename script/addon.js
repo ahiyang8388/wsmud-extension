@@ -1059,13 +1059,13 @@
 					SendCommand(aliases.get('p5'));
 					e.preventDefault();
 				} else if (e.which == 117) { // F6
-					SendCommand('eq 86q7155246a;eq cd9r156c5c0;eq 2qfb188cf4d;eq 40z51332c8f;eq sg9w14d7dca;eq voau190d084');
+					SendCommand('eq 86q7155246a;eq cd9r156c5c0;eq 2qfb188cf4d;eq x9u6196b3c2;eq sg9w14d7dca;eq voau190d084');
 					e.preventDefault();
 				} else if (e.which == 118) { // F7
 					SendCommand('eq iq8b15a9c27;eq 1tgm18a2aaf;eq 2qfb188cf4d;eq 40z51332c8f;eq nc6v18cdca3;eq voau190d084');
 					e.preventDefault();
 				} else if (e.which == 119) { // F8
-					SendCommand('eq 603z155852b;eq cd9r156c5c0;eq wxth16a8173;eq q0ui10f5a1d;eq lhc313bbbf4;eq buhp157ff22');
+					SendCommand('eq 603z155852b;eq cd9r156c5c0;eq wxth16a8173;eq x9u6196b3c2;eq lhc313bbbf4;eq buhp157ff22');
 					e.preventDefault();
 				} else if (e.which == 120) { // F9
 					SendCommand('jh fam 0 start;go west;go west;go north;go enter;go west;lianxi dasongyangshenzhang');
