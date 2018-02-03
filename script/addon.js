@@ -30,7 +30,7 @@
 	aliases.set('p2', 'eq jnk618b6c80;perform force.xi;perform dodge.power;perform blade.chan');
 	aliases.set('p3', 'perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
 	aliases.set('p4', 'eq a3gg1689bd4;perform force.xi;perform whip.chan');
-	aliases.set('p5', 'eq 9wow13462cb;perform force.xi;perform sword.poqi');
+	aliases.set('p5', 'eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi');
 
 	var map_ids = new Map();
 	map_ids.set('yangzhou', '0');
@@ -382,7 +382,7 @@
 					} else {
 						var r = data.msg.match(/^<hig>你获得了(\d+)点经验，(\d+)点潜能。<\/hig>$/);
 						if (r) {
-							if (parseInt(r[1]) < 60) {
+							if (parseInt(r[1]) < 70) {
 								var str = 'stopstate;go east;go east;go north;go enter;go west;';
 								if (full_skills[lian_index] == 'wuhuduanmendao') {
 									str += 'eq jnk618b6c80;';
@@ -420,7 +420,7 @@
 					} else {
 						var r = data.msg.match(/^<hig>你获得了(\d+)点经验，(\d+)点潜能。<\/hig>$/);
 						if (r) {
-							if (parseInt(r[1]) < 60) {
+							if (parseInt(r[1]) < 70) {
 								var str = 'stopstate;go east;go east;go north;go enter;go west;';
 								if (lian_skill == 'wuhuduanmendao') {
 									str += 'eq jnk618b6c80;';
@@ -470,7 +470,7 @@
 					} else {
 						var r = data.msg.match(/^<hig>你获得了(\d+)点经验，(\d+)点潜能。<\/hig>$/);
 						if (r) {
-							if (parseInt(r[1]) < 60) {
+							if (parseInt(r[1]) < 70) {
 								send_cmd('stopstate;go east;go east;go north;go enter;go west');
 								setTimeout(function() {
 									execute_cmd('xue ' + xue_skill);
@@ -511,7 +511,7 @@
 					} else {
 						var r = data.msg.match(/^<hig>你获得了(\d+)点经验，(\d+)点潜能。<\/hig>$/);
 						if (r) {
-							if (parseInt(r[1]) < 60) {
+							if (parseInt(r[1]) < 70) {
 								send_cmd('stopstate;go east;go east;go north;go enter;go west;dazuo');
 							}
 						}
@@ -1065,7 +1065,7 @@
 					SendCommand('eq iq8b15a9c27;eq 1tgm18a2aaf;eq 2qfb188cf4d;eq 40z51332c8f;eq nc6v18cdca3;eq voau190d084');
 					e.preventDefault();
 				} else if (e.which == 119) { // F8
-					SendCommand('eq 603z155852b;eq cd9r156c5c0;eq wxth16a8173;eq x9u6196b3c2;eq lhc313bbbf4;eq buhp157ff22');
+					SendCommand('eq 603z155852b;eq cd9r156c5c0;eq nawl19a936f;eq x9u6196b3c2;eq lhc313bbbf4;eq buhp157ff22');
 					e.preventDefault();
 				} else if (e.which == 120) { // F9
 					SendCommand('jh fam 0 start;go west;go west;go north;go enter;go west;lianxi dasongyangshenzhang');
