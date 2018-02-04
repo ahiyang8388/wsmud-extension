@@ -24,13 +24,13 @@
 	aliases.set('dz', 'dazuo');
 	aliases.set('pfm', 'perform');
 	aliases.set('home', 'fly yz;w;w;n;enter');
-	aliases.set('full', 'fly yz;n;n;w;eq 9wow13462cb;heal');
+	aliases.set('full', 'fly yz;n;n;w;eq ates18e2b56;heal');
 	aliases.set('yamen', 'fly yz;w;n;n');
-	aliases.set('p1', 'eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu');
+	aliases.set('p1', 'eq ates18e2b56;perform force.xi;perform dodge.power;perform sword.wu');
 	aliases.set('p2', 'eq jnk618b6c80;perform force.xi;perform dodge.power;perform blade.chan');
 	aliases.set('p3', 'perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
 	aliases.set('p4', 'eq a3gg1689bd4;perform force.xi;perform whip.chan');
-	aliases.set('p5', 'eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi');
+	aliases.set('p5', 'eq ates18e2b56;perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi');
 
 	var map_ids = new Map();
 	map_ids.set('yangzhou', '0');
@@ -382,7 +382,7 @@
 					} else {
 						var r = data.msg.match(/^<hig>你获得了(\d+)点经验，(\d+)点潜能。<\/hig>$/);
 						if (r) {
-							if (parseInt(r[1]) < 70) {
+							if (parseInt(r[1]) < 80) {
 								var str = 'stopstate;go east;go east;go north;go enter;go west;';
 								if (full_skills[lian_index] == 'wuhuduanmendao') {
 									str += 'eq jnk618b6c80;';
@@ -420,7 +420,7 @@
 					} else {
 						var r = data.msg.match(/^<hig>你获得了(\d+)点经验，(\d+)点潜能。<\/hig>$/);
 						if (r) {
-							if (parseInt(r[1]) < 70) {
+							if (parseInt(r[1]) < 80) {
 								var str = 'stopstate;go east;go east;go north;go enter;go west;';
 								if (lian_skill == 'wuhuduanmendao') {
 									str += 'eq jnk618b6c80;';
@@ -470,7 +470,7 @@
 					} else {
 						var r = data.msg.match(/^<hig>你获得了(\d+)点经验，(\d+)点潜能。<\/hig>$/);
 						if (r) {
-							if (parseInt(r[1]) < 70) {
+							if (parseInt(r[1]) < 80) {
 								send_cmd('stopstate;go east;go east;go north;go enter;go west');
 								setTimeout(function() {
 									execute_cmd('xue ' + xue_skill);
@@ -508,10 +508,12 @@
 					if (data.msg == '<hic>你觉得你的经脉充盈，已经没有办法再增加内力了。</hic>') {
 						execute_cmd('#t- dazuo');
 						send_cmd('stopstate;go east;go out;go south;go west;go west;wa');
+					} else if (data.msg == '挖矿不拿铁镐可怎么挖，你可以去扬州城的铁匠那里购买。') {
+						send_cmd('go east;go east;go north;go enter;go west;dazuo');
 					} else {
 						var r = data.msg.match(/^<hig>你获得了(\d+)点经验，(\d+)点潜能。<\/hig>$/);
 						if (r) {
-							if (parseInt(r[1]) < 70) {
+							if (parseInt(r[1]) < 80) {
 								send_cmd('stopstate;go east;go east;go north;go enter;go west;dazuo');
 							}
 						}
@@ -587,7 +589,7 @@
 					if (data.start) {
 						is_busy = false;
 						action_state = 1;
-						send_cmd('eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
+						send_cmd('eq ates18e2b56;perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
 					}
 				} else if (in_combat && data.type == 'status') {
 					if (data.action == 'add' && data.id != my_id && data.sid == 'busy') {
@@ -617,14 +619,14 @@
 					if (data.id == 'whip.chan' && action_state == 4) {
 						setTimeout(function() {
 							action_state = 8;
-							send_cmd('eq 9wow13462cb');
+							send_cmd('eq ates18e2b56');
 							/*
 							if (is_busy) {
 								action_state = 5;
 								send_cmd('eq jnk618b6c80');
 							} else {
 								action_state = 0;
-								send_cmd('eq 9wow13462cb');
+								send_cmd('eq ates18e2b56');
 							} */
 						}, data.rtime);
 					} else if (!data.id && action_state == 5) {
@@ -640,7 +642,7 @@
 					} else if (data.id == 'unarmed.chan' && action_state == 7) {
 						setTimeout(function() {
 							action_state = 8;
-							send_cmd('eq 9wow13462cb');
+							send_cmd('eq ates18e2b56');
 						}, data.rtime);
 					} else if (!data.id && action_state == 8) {
 						setTimeout(function() {
@@ -699,7 +701,7 @@
 					} else if (data.id == 'blade.chan' && action_state == 3) {
 						setTimeout(function() {
 							action_state = 4;
-							send_cmd('eq 9wow13462cb');
+							send_cmd('eq ates18e2b56');
 						}, data.rtime);
 					} else if (!data.id && action_state == 4) {
 						setTimeout(function() {
@@ -726,7 +728,7 @@
 					if (data.start) {
 						is_busy = false;
 						action_state = 1;
-						send_cmd('eq 9wow13462cb;perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
+						send_cmd('eq ates18e2b56;perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi');
 					}
 				} else if (in_combat && data.type == 'status') {
 					if (data.action == 'add' && data.id != my_id && data.sid == 'busy') {
@@ -745,13 +747,13 @@
 						is_busy = false;
 						if (action_state == 1) {
 							action_state = 2;
-							send_cmd('perform force.xi;perform dodge.power;perform sword.poqi');
+							send_cmd('perform force.xi;perform dodge.power;perform unarmed.chan');
 						} else if (action_state == 2) {
 							action_state = 3;
 							send_cmd('perform whip.chan');
 						} else if (action_state == 4) {
 							action_state = 1;
-							send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
+							send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi');
 						}
 					}
 				} else if (in_combat && data.type == 'dispfm') {
@@ -771,7 +773,7 @@
 						}, data.rtime);
 					} else if (data.id == 'blade.chan' && action_state == 4) {
 						setTimeout(function() {
-							send_cmd('eq 9wow13462cb');
+							send_cmd('eq ates18e2b56');
 						}, data.rtime);
 					}
 				}
