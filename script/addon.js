@@ -102,12 +102,13 @@
 		ReceiveMessage('<hir>' + msg + '</hir>');
 	}
 	
-	var my_id, room, items = new Map(), in_combat = false, i_am_ready = true, i_am_busy = false, combat_room, kill_targets = [], auto_loot_timeout;
-	add_listener(['login', 'room', 'items', 'itemadd', 'itemremove', 'combat', 'text', 'dispfm', 'status'], function(data) {
+	var my_id, room, map_id, items = new Map(), in_combat = false, i_am_ready = true, i_am_busy = false, combat_room, kill_targets = [], auto_loot_timeout;
+	add_listener(['login', 'room', 'items', 'itemadd', 'itemremove', 'combat', 'text', 'dispfm', 'status', 'msg'], function(data) {
 		if (data.type == 'login') {
 			my_id = data.id;
 		} else if (data.type == 'room') {
 			room = data;
+			map_id = get_map_id(room.path);
 		} else if (data.type == 'items') {
 			items = new Map();
 			for (var i = 0; i < data.items.length; i++) {
@@ -169,8 +170,36 @@
 					i_am_busy = false;
 				}
 			}
+		} else if (data.type == 'msg') {
+			if ((map_id == 'home' || map_id == 'yz') && data.ch == 'chat'
+					&& data.name == '<him>婚庆主持</him>' && /^婚礼现在正式开始/.test(data.content)) {
+				var h = add_listener(['items', 'cmds'], function(data) {
+					if (data.type == 'items') {
+						for (var i = 0; i < data.items.length; i++) {
+							if (data.items[i].name == '<hio>婚宴礼桌</hio>') {
+								remove_listener(h);
+								send_cmd('get all from ' + data.items[i].id);
+								send_cmd('stopstate;jh fam 0 start;go west;go west;go west;go west;eq qpei172983d;wa');
+								break;
+							}
+						}
+					} else if (data.type == 'cmds') {
+						for (var i = 0; i < data.items.length; i++) {
+							if (data.items[i].name == '99金贺礼') {
+								send_cmd(data.items[i].cmd + ';go up');
+								break;
+							}
+						}
+					}
+				});
+				send_cmd('stopstate;jh fam 0 start;go north;go north;go east;go up');
+			}
 		}
 	});
+	function get_map_id(path) {
+		var i = path.indexOf('/');
+		return i >= 0 ? path.substr(0, i) : path;
+	}
 	function get_text(str) {
 		return $.trim($('<body>' + str + '</body>').text());
 	}
@@ -333,7 +362,7 @@
 					if (task_target) {
 						var id = find_item(task_target);
 						if (id) {
-							send_cmd('kill ' + id);
+							send_cmd('kill ' + id + ";perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi;perform throwing.jiang");
 							task_target = undefined;
 						}
 					}
