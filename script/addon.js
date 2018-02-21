@@ -54,7 +54,8 @@
 	
 	var full_skills = ['sword', 'parry', 'dugujiujian2', 'unarmed', 'dasongyangshenzhang',
 	                   'force', 'zixiashengong2', 'whip', 'yunlongbian', 'dodge', 'tagexing',
-	                   'blade', 'wuhuduanmendao', 'throwing', 'jinshezhui']; // , 'club', 'baguagun'
+	                   'blade', 'wuhuduanmendao', 'throwing', 'feixingshu', 'staff',
+	                   'lingshezhangfa', 'club', 'baguagun'];
 	var no_loot = false;
 	var cooldowns = new Map();
 
@@ -176,7 +177,7 @@
 				var h = add_listener(['items', 'cmds'], function(data) {
 					if (data.type == 'items') {
 						for (var i = 0; i < data.items.length; i++) {
-							if (data.items[i].name == '<hio>婚宴礼桌</hio>') {
+							if (data.items[i].name == '<hio>婚宴礼桌</hio>' || data.items[i].name == '<hiy>婚宴礼桌</hiy>') {
 								remove_listener(h);
 								send_cmd('get all from ' + data.items[i].id);
 								send_cmd('stopstate;jh fam 0 start;go west;go west;go west;go west;eq qpei172983d;wa');
@@ -185,10 +186,10 @@
 						}
 					} else if (data.type == 'cmds') {
 						for (var i = 0; i < data.items.length; i++) {
-							if (data.items[i].name == '99金贺礼') {
+							if (data.items[i].name == '99金贺礼' || data.items[i].name == '9金贺礼') {
 								send_cmd(data.items[i].cmd + ';go up');
 								break;
-							}
+							} 
 						}
 					}
 				});
@@ -569,8 +570,12 @@
 							var title = get_title(data.items[i].name);
 							if (title == '蒙古兵') {
 								stop_state();
-								send_cmd('kill ' + data.items[i].id);
+								// send_cmd('kill ' + data.items[i].id);
 							} else if (title == '十夫长') {
+								stop_state();
+								var id = data.items[i].id;
+								send_cmd('kill ' + id + ';perform force.xi;perform dodge.power;perform sword.wu;perform throwing.jiang');
+							} else if (title == '百夫长') {
 								stop_state();
 								var id = data.items[i].id;
 								setTimeout(function() {
@@ -582,8 +587,11 @@
 						var title = get_title(data.name);
 						if (title == '蒙古兵') {
 							stop_state();
-							send_cmd('kill ' + data.id);
+							// send_cmd('kill ' + data.id);
 						} else if (title == '十夫长') {
+							stop_state();
+							send_cmd('kill ' + data.id + ';perform force.xi;perform dodge.power;perform sword.wu;perform throwing.jiang');
+						} else if (title == '百夫长') {
 							stop_state();
 							setTimeout(function() {
 								send_cmd('kill ' + data.id);
@@ -757,7 +765,7 @@
 					if (data.start) {
 						is_busy = false;
 						action_state = 1;
-						send_cmd('eq ates18e2b56;perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi');
+						send_cmd('eq ates18e2b56;perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi;perform throwing.jiang');
 					}
 				} else if (in_combat && data.type == 'status') {
 					if (data.action == 'add' && data.id != my_id && data.sid == 'busy') {
@@ -789,20 +797,49 @@
 					if (!data.id && action_state == 2) {
 						setTimeout(function() {
 							action_state = 3;
-							send_cmd('perform whip.chan');
-						}, data.rtime);
-					} else if (data.id == 'whip.chan' && action_state == 3) {
-						setTimeout(function() {
-							send_cmd('eq jnk618b6c80');
+							send_cmd('perform whip.chan;eq jnk618b6c80');
 						}, data.rtime);
 					} else if (!data.id && action_state == 3) {
 						setTimeout(function() {
 							action_state = 4;
-							send_cmd('perform force.xi;perform dodge.power;perform blade.chan');
+							send_cmd('perform force.xi;perform dodge.power;perform blade.chan;perform throwing.jiang;eq ates18e2b56');
 						}, data.rtime);
-					} else if (data.id == 'blade.chan' && action_state == 4) {
+					}
+				}
+			});
+		} else if (cmd == '#combat 4') {
+			log('open auto combat mode 4...');
+			var action_state, is_busy;
+			add_task_listener(['combat', 'status', 'dispfm'], function(data) {
+				if (data.type == 'combat') {
+					if (data.start) {
+						is_busy = false;
+						action_state = 1;
+						send_cmd('eq ates18e2b56;perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi;perform throwing.jiang');
+					}
+				} else if (in_combat && data.type == 'status') {
+					if (data.action == 'add' && data.id != my_id && data.sid == 'busy') {
+						is_busy = true;
+						log('busy time: ' + data.duration);
+					} else if (data.action == 'remove' && data.id != my_id && data.sid == 'busy') {
+						is_busy = false;
+						if (action_state == 1) {
+							action_state = 2;
+							send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan;perform throwing.jiang');
+						} else if (action_state == 2) {
+							if (!cooldowns.get('sword.poqi')) {
+								action_state = 1;
+								send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi;perform throwing.jiang');
+							}
+						}
+					}
+				} else if (in_combat && data.type == 'dispfm') {
+					if (data.id == 'sword.poqi' && action_state == 2) {
 						setTimeout(function() {
-							send_cmd('eq ates18e2b56');
+							if (action_state == 2) {
+								action_state = 1;
+								send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi;perform throwing.jiang');
+							}
 						}, data.rtime);
 					}
 				}
@@ -1090,10 +1127,10 @@
 					SendCommand(aliases.get('p5'));
 					e.preventDefault();
 				} else if (e.which == 117) { // F6
-					SendCommand('eq 86q7155246a;eq cd9r156c5c0;eq 2qfb188cf4d;eq x9u6196b3c2;eq sg9w14d7dca;eq voau190d084');
+					SendCommand('eq kwu81b44c03;eq cd9r156c5c0;eq 2qfb188cf4d;eq x9u6196b3c2;eq mtal1b99137;eq nm1g1b29016');
 					e.preventDefault();
 				} else if (e.which == 118) { // F7
-					SendCommand('eq iq8b15a9c27;eq 1tgm18a2aaf;eq 2qfb188cf4d;eq 40z51332c8f;eq nc6v18cdca3;eq voau190d084');
+					SendCommand('eq kwu81b44c03;eq 1tgm18a2aaf;eq 2qfb188cf4d;eq 40z51332c8f;eq mtal1b99137;eq nm1g1b29016');
 					e.preventDefault();
 				} else if (e.which == 119) { // F8
 					SendCommand('eq 603z155852b;eq cd9r156c5c0;eq nawl19a936f;eq x9u6196b3c2;eq lhc313bbbf4;eq buhp157ff22');
