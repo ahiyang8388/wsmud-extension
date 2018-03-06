@@ -26,11 +26,11 @@
 	aliases.set('home', 'fly yz;w;w;n;enter');
 	aliases.set('full', 'fly yz;n;n;w;eq ates18e2b56;heal');
 	aliases.set('yamen', 'fly yz;w;n;n');
-	aliases.set('p1', 'eq ates18e2b56;perform force.xi;perform dodge.power;perform sword.wu');
-	aliases.set('p2', 'eq jnk618b6c80;perform force.xi;perform dodge.power;perform blade.chan');
-	aliases.set('p3', 'perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan');
+	aliases.set('p1', 'eq ates18e2b56;perform force.xi;perform dodge.power;perform sword.wu;perform parry.wu');
+	aliases.set('p2', 'eq jnk618b6c80;perform force.xi;perform dodge.power;perform parry.wu;perform blade.chan');
+	aliases.set('p3', 'perform force.xi;perform dodge.power;perform sword.wu;perform parry.wu;perform unarmed.chan');
 	aliases.set('p4', 'eq a3gg1689bd4;perform force.xi;perform whip.chan');
-	aliases.set('p5', 'eq ates18e2b56;perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi');
+	aliases.set('p5', 'eq ates18e2b56;perform force.xi;perform dodge.power;perform sword.wu;perform parry.wu;perform sword.poqi');
 
 	var map_ids = new Map();
 	map_ids.set('yangzhou', '0');
@@ -55,7 +55,7 @@
 	var full_skills = ['sword', 'parry', 'dugujiujian2', 'unarmed', 'dasongyangshenzhang',
 	                   'force', 'zixiashengong2', 'whip', 'yunlongbian', 'dodge', 'tagexing',
 	                   'blade', 'wuhuduanmendao', 'throwing', 'feixingshu', 'staff',
-	                   'lingshezhangfa', 'club', 'baguagun'];
+	                   'lingshezhangfa', 'club', 'baguagun', 'hengshanwushenjian'];
 	var no_loot = false;
 	var cooldowns = new Map();
 
@@ -363,7 +363,7 @@
 					if (task_target) {
 						var id = find_item(task_target);
 						if (id) {
-							send_cmd('kill ' + id + ";perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi;perform throwing.jiang");
+							send_cmd('kill ' + id + ";perform force.xi;perform dodge.power;perform sword.wu;perform parry.wu;perform sword.poqi;perform throwing.jiang");
 							task_target = undefined;
 						}
 					}
@@ -765,7 +765,7 @@
 					if (data.start) {
 						is_busy = false;
 						action_state = 1;
-						send_cmd('eq ates18e2b56;perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi;perform throwing.jiang');
+						send_cmd('eq ates18e2b56;perform force.xi;perform dodge.power;perform sword.wu;perform parry.wu;perform sword.poqi;perform throwing.jiang');
 					}
 				} else if (in_combat && data.type == 'status') {
 					if (data.action == 'add' && data.id != my_id && data.sid == 'busy') {
@@ -784,13 +784,13 @@
 						is_busy = false;
 						if (action_state == 1) {
 							action_state = 2;
-							send_cmd('perform force.xi;perform dodge.power;perform unarmed.chan');
+							send_cmd('perform force.xi;perform dodge.power;perform parry.wu;perform unarmed.chan');
 						} else if (action_state == 2) {
 							action_state = 3;
 							send_cmd('perform whip.chan');
 						} else if (action_state == 4) {
 							action_state = 1;
-							send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi');
+							send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform parry.wu;perform sword.poqi');
 						}
 					}
 				} else if (in_combat && data.type == 'dispfm') {
@@ -802,7 +802,7 @@
 					} else if (!data.id && action_state == 3) {
 						setTimeout(function() {
 							action_state = 4;
-							send_cmd('perform force.xi;perform dodge.power;perform blade.chan;perform throwing.jiang;eq ates18e2b56');
+							send_cmd('perform force.xi;perform dodge.power;perform parry.wu;perform blade.chan;perform throwing.jiang;eq ates18e2b56');
 						}, data.rtime);
 					}
 				}
@@ -815,7 +815,7 @@
 					if (data.start) {
 						is_busy = false;
 						action_state = 1;
-						send_cmd('eq ates18e2b56;perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi;perform throwing.jiang');
+						send_cmd('eq ates18e2b56;perform force.xi;perform dodge.power;perform sword.wu;perform parry.wu;perform sword.poqi;perform throwing.jiang');
 					}
 				} else if (in_combat && data.type == 'status') {
 					if (data.action == 'add' && data.id != my_id && data.sid == 'busy') {
@@ -825,11 +825,11 @@
 						is_busy = false;
 						if (action_state == 1) {
 							action_state = 2;
-							send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform unarmed.chan;perform throwing.jiang');
+							send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform parry.wu;perform unarmed.chan;perform throwing.jiang');
 						} else if (action_state == 2) {
 							if (!cooldowns.get('sword.poqi')) {
 								action_state = 1;
-								send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi;perform throwing.jiang');
+								send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform parry.wu;perform sword.poqi;perform throwing.jiang');
 							}
 						}
 					}
@@ -838,7 +838,7 @@
 						setTimeout(function() {
 							if (action_state == 2) {
 								action_state = 1;
-								send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform sword.poqi;perform throwing.jiang');
+								send_cmd('perform force.xi;perform dodge.power;perform sword.wu;perform parry.wu;perform sword.poqi;perform throwing.jiang');
 							}
 						}, data.rtime);
 					}
